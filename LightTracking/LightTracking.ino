@@ -15,7 +15,7 @@ short degreeInterval;
 short lightHigh = 0;//highest light reading
 short lightCurr;//current light reading
 short lightDegree;//Degree at where highest current light reading is recorded
-//this is a git test to check that clone is working properly
+//--------
 //Initate instances 
 //Thermometer therm = Thermometer();
 //LED leds[6] = {LED(4), LED(5), LED(6), LED(7), LED(8), LED(13)};
