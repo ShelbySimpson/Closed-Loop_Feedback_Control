@@ -8,6 +8,7 @@ using namespace std;
 class Serv {
   public:
     Serv();
+    void init(Servo myServo);
     void rotate(short pos);
     void rotateLeft();
     void rotateRight();
