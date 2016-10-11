@@ -15,10 +15,9 @@ bool settingUp;
 short degreeInterval;
 short lightPrev = 0;//previous light reading
 short lightCurr;//current light reading
-short lightDegree;//Degree at where highest current light reading is recorded
 short nextMove = 0;
-short dir = -1;
-short posCurr 0;
+short dir = 1;
+short posCurr = 180;//current position of servo(0-180)
 //--------
 //Initate instances 
 //Thermometer therm = Thermometer();
@@ -44,7 +43,7 @@ void setup() {
   Serial.println("Start");
   settingUp = true;
   degreeInterval = 5;//light data sample based on degreeInterval
-  servo.rotateLeft();
+  servo.initAttach();
   
 }
 
@@ -75,53 +74,57 @@ void loop() {
       lightCurr = lightSensor.getData();//get light data at current degree.
       if(lightCurr > lightPrev){//keep track of highest light degree reading
         lightPrev = lightCurr;//current becomes previous as another data sample will be taken
-        lightDegree = i;
+        posCurr = i;
 //        Serial.print("Light High - ");
 //        Serial.println(lightHigh);
 //        Serial.print("Light Degree - ");
 //        Serial.println(lightDegree);
       }
-      servo.rotate(lightDegree);//move to area with most light
     }
+    //servo.rotate(posCurr);//move to area with most light
+    servo.rotate(90);//temp testing
+    delay(50);
     settingUp = false;
     Serial.println("Finished Setting Up");
-    Serial.println(lightPrev);
     }
       //Begin looking for light changes
       lightCurr = lightSensor.getData();
-      delay(100);
       //Determine if there has been a significant change in the light source to make a move
       if(isMove(lightCurr,lightPrev)){
-        servo.rotate(0)//temp just for testing
-        
-        while(){
-        lightPrev = lightCurr;//exchange values before new data sample
-        posCurr = abs(lightDegree * dir + degreeInterval);
-        servo.rotate(currPos);//rotate by interval
-          Serial.println("atest");
-           Serial.println(abs(lightDegree * dir + degreeInterval));
-           Serial.println(lightDegree);
-           dir *= -1;
-           Serial.print("dir------>");
-           Serial.println(dir);
+        lightPrev = lightCurr;//update value before new data sample
+        posCurr = abs(servo.getPos() * dir + degreeInterval);
+        servo.rotate(posCurr);
+        delay(1000);
+        Serial.println("just rotated");
+        delay(50);
+        //get light source and compare to prev
+        if(lightSensor.getData() < lightPrev){
+          dir *= 1;
+          servo.rotate(75);
+          //servo.rotate(degreeInterval *2 * dir + servo.getPos());
+          delay(50);
+          while(5){
+            Serial.println(servo.getPos());
+          }
+          
+          Serial.println("it is it is ");
         }
-        //check if new position has a greater light source
-        if(lightSensor.getData() > lightPrev){
-          //
-        }
-        Serial.println("This is a move");
-        nextMove++;
-        Serial.println(nextMove);
-        Serial.println(lightCurr);
+//        while(posCurr != 0){
+//        posCurr = abs(posCurr * dir + degreeInterval);
+//        //servo.rotate(posCurr);//rotate by interval
+//        delay(50);
+//          Serial.print("Current position ");
+//          Serial.println(posCurr);
+//           //dir *= -1;
+//        }
+//        //check if new position has a greater light source
+//        if(lightSensor.getData() > lightPrev){
+//          //
+//        }
+//        Serial.println("This is a move");
+//        nextMove++;
+//        Serial.println(nextMove);
+//        Serial.println(lightCurr);
       }
     }
-//
-//    if(lightSensor.getData()<= lightHigh - 10 || lightSensor.getData() >= lightHigh + 10){
-//      if(nextMove == 0){
-//          nextMove = nextMove + degreeInterval;
-//      }else if(nextMove == 180){
-//        nextMove == nextMove - degreeInterval;
-//        servo.rotate(nextMove);
-//    }
-//    }
 }
