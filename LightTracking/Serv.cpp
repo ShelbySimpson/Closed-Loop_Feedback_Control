@@ -21,6 +21,7 @@ short Serv::getPos(){
 
 short Serv::scanHighPos(LightSensor lightSensor,short degreeInterval){
     myServo.write(0);//set to intial testing position
+    delay(50);
     short newPos = 0;
     short lightCurr = 0;
     short lightPrev = 0;
