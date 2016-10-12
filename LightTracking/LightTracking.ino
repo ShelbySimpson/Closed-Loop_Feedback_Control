@@ -4,7 +4,7 @@
 //#include "Microphone.h"
 #include "Slide.h"
 #include "Switch.h"
-//#include "Button.h"
+#include "Button.h"
 #include "ColorLED.h"
 #include "Serv.h"
 #include <Servo.h>
@@ -28,7 +28,7 @@ LightSensor lightSensor = LightSensor();
 //Microphone mic = Microphone();
 Slide slide = Slide();
 Switch swch = Switch();
-//Button bttn = Button();
+Button bttn = Button();
 ColorLED cLED = ColorLED(RED);
 Serv servo = Serv();
 
@@ -40,110 +40,53 @@ bool isMove(short curr, short prev){
   return move;
 }
 
-short scanLow(){
-    cLED.off();
-    cLED.setColor(RED);//green mean its a go
-    cLED.on(255);//on and ready for flashlight movement.
-    servo.rotate(0);//set to intial testing position
-    short low;
-    lightPrev = 181;
-    for(short i = 0; i < 181; i = i + degreeInterval){
-      servo.rotate(i);//rotate at degree intervals to test light intensity.
-      delay(50);//allow time for servo movement
-      lightCurr = lightSensor.getData();//get light data at current degree.
-      if(lightCurr < lightPrev){//keep track of highest light degree reading
-        lightPrev = lightCurr;//current becomes previous as another data sample will be taken
-        low = i;
-        Serial.print("this is low - ");
-        Serial.println(low);
-      }
-    }
-    return low;
-}
-
-short scan(){
-    cLED.off();
-    cLED.setColor(RED);//green mean its a go
-    cLED.on(255);//on and ready for flashlight movement.
-    servo.rotate(0);//set to intial testing position
-    short newPos = 0;
-    lightPrev = 0;
-    for(short i = 0; i < 181; i = i + degreeInterval){
-      servo.rotate(i);//rotate at degree intervals to test light intensity.
-      delay(50);//allow time for servo movement
-      lightCurr = lightSensor.getData();//get light data at current degree.
-      if(lightCurr > lightPrev){//keep track of highest light degree reading
-        lightPrev = lightCurr;//current becomes previous as another data sample will be taken
-        newPos = i;
-      }
-    }
-    return newPos;
-}
-
 void setup() {
   Serial.begin(57600);
   Serial.println("Start");
   settingUp = true;
   degreeInterval = 5;//light data sample based on degreeInterval
   servo.initAttach();
+  cLED.setColor(RED);
+  cLED.on(255);
   servo.rotate(0);
-  servo.rotate(scan());
-  lightThreshold = slide.getData();
+  servo.rotate(servo.scanHighPos(lightSensor,degreeInterval));
+  lightThreshold = map(slide.getData(),0,1023,0,200);
   Serial.print("Light Threshold - ");
   Serial.println(lightThreshold);
-  Serial.println("Finished Setting Up");
-  Serial.print("this is low final - ");
-  Serial.println(scanLow());
-  delay(5000);
+  cLED.off();
+  cLED.setColor(GREEN);//green mean its a go
+  cLED.on(255);//on and ready for flashlight movement.
+  delay(50);
   
   
 }
 
 void loop() {
-  //Setup 
-  //1.)find the degree to which light has the most intensity.
-    //for each degree interval(0-180) find highest light sensor reading,sandbox scans inviroment.
-    //this will have sandbox in a close enough proximity as long the intervals are reasonable.
-//    while(settingUp){
-////  servo.rotate(0);
-//  lightCurr = scan();
-//  servo.rotate(scan());
-//  Serial.println("Finished Setting Up");
-//      delay(5000);
-//    settingUp = false;
-//    }
-    //cLED.off();
-    //cLED.setColor(GREEN);//green mean its a go
-    //cLED.on(255);//on and ready for flashlight movement.
-    
+      //------------------------------------  READ ME ---------------------------------------------------------------------------
+      //the lightThreshold determines the highest level of light to trigger a 180
+      //scan. The button(D12) will allow you to change lightThreshold to the slider(A3) value.
+      //lightThreshold can not be changed while sandbox is scanning so the button is intended
+      //to be used when the lightThreshold has been set too low as the sandbox will not be rotating. A 
+      //lightThreshold set too high will have the sandbox rotating most of the time thus making
+      //it difficult to get slider value. While at a lightThreshold set very low the sandbox will
+      //not rotate but will still function as intended but will never scan to look for a strong light
+      //source such as a flashlight.
+      //----------------------------------------------------------------------------------------------------------------------------
 
-//    while(settingUp){
-//    cLED.on(255);//turn red light on until finished setting up
-//    servo.rotate(0);//set to intial testing position
-//    for(short i = 0; i < 181; i = i + degreeInterval){
-//      servo.rotate(i);//rotate at degree intervals to test light intensity.
-//      delay(50);//allow time for servo movement
-//      lightCurr = lightSensor.getData();//get light data at current degree.
-//      if(lightCurr > lightPrev){//keep track of highest light degree reading
-//        lightPrev = lightCurr;//current becomes previous as another data sample will be taken
-//        posCurr = i;
-//      }
-//    }
-//    servo.rotate(posCurr);//move to area with most light
-//    //servo.rotate(90);//temp testing
-//    }
-      //Begin looking for light changes--------------------------------------------------------------------------------------
-      //if light's reading is < lightThreshold scan enviroment
-            lightCurr = lightSensor.getData();
+      lightCurr = lightSensor.getData();
+      if(bttn.getData() == 1){
+        lightThreshold = slide.getData();
+      }
       Serial.println(lightCurr);
       if(lightCurr < lightThreshold){
         //delay and try again to check if light source is back
         delay(1000);
         lightCurr = lightSensor.getData();
           if(lightCurr < lightThreshold){
-            //light source is not back, scan for light
-            //if(scan() < lightThreshold){
-            servo.rotate(scan()); 
+            cLED.off();
+            cLED.setColor(RED);
+            cLED.on(255);
+            servo.rotate(servo.scanHighPos(lightSensor,degreeInterval));
             delay(50);
                 cLED.off();
                 cLED.setColor(GREEN);//green mean its a go
