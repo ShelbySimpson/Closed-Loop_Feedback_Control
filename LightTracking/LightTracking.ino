@@ -40,6 +40,9 @@ bool isMove(short curr, short prev){
 }
 
 short scan(){
+    cLED.off();
+    cLED.setColor(RED);//green mean its a go
+    cLED.on(255);//on and ready for flashlight movement.
     servo.rotate(0);//set to intial testing position
     short newPos = 0;
     for(short i = 0; i < 181; i = i + degreeInterval){
@@ -85,9 +88,9 @@ void loop() {
     //servo.rotate(90);//temp testing
     delay(50);
     settingUp = false;
-    cLED.off();
-    cLED.setColor(GREEN);//green mean its a go
-    cLED.on(255);//on and ready for flashlight movement.
+    //cLED.off();
+    //cLED.setColor(GREEN);//green mean its a go
+    //cLED.on(255);//on and ready for flashlight movement.
     Serial.println("Finished Setting Up");
     }
       //Begin looking for light changes--------------------------------------------------------------------------------------
@@ -96,8 +99,13 @@ void loop() {
       Serial.println(lightCurr);
       if(lightCurr < 100){
         delay(1000);
+        lightCurr = lightSensor.getData();
           if(lightCurr < 100){
             servo.rotate(scan()); 
+            delay(50);
+                cLED.off();
+                cLED.setColor(GREEN);//green mean its a go
+                cLED.on(255);//on and ready for flashlight movement.
           }
       }
       //Determine if there has been a significant change in the light source to make a move
