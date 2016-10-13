@@ -107,7 +107,6 @@ void loop() {
       }
       //Determine if there has been a significant change in the light source to make a move
       if(isMove(lightCurr,lightPrev,pad)){
-        lightPrev = lightCurr;//update value before new data sample
         //get new position according to degreeInterval and rotate
         posCurr = servo.checkAdjustLimits(degreeInterval *2 * dir + servo.getPos());//get position
         servo.rotate(posCurr);//check for upper limit,adjust if needed,move
@@ -121,8 +120,6 @@ void loop() {
           dir *= -1;//switch direction
           posCurr = servo.checkAdjustLimits(degreeInterval *2 * dir + servo.getPos());//get position
           servo.rotate(posCurr);//check for upper limit,adjust if needed,move
-          Serial.print("upper limit - ");
-          Serial.println(posCurr);
           delay(moveDelay);//allow time for servo movement
         }
       }
