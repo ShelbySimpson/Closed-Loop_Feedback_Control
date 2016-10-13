@@ -15,6 +15,10 @@ short dir = 1;//used to switch servo rotating direction
 short posCurr;//current position of servo(0-180)
 short lightThreshold;//the point at which the area will be scanned for light source.
 short pad = 20;//padding for light samples.
+short moveDelay = 50;//delay given after servo has been instructed to move
+//time sandbox waits when light value goes below lightThreshold
+//before checking again to see if light source has returned - 
+short waitDelay = 2000;
 //--------
 //Initate instances 
 LightSensor lightSensor = LightSensor();//used to track light
@@ -24,7 +28,6 @@ ColorLED cLED = ColorLED(RED);//red signifes scanning, green signifies tracking
 Serv servo = Serv();//cordinates with light sensor
 
 //Function determines rather a change in the light source value is significant enough to "chase" light source.
-//params:
 //lightCurr - current light sample
 //lightPrev - previous light sample
 //pad - a value that determines, in neg and pos direction, how much of a light value change
@@ -37,11 +40,6 @@ bool isMove(short lightCurr, short lightPrev, short pad){
   return move;
 }
 
-//ensure that servo doesn't grind by going to position beyond stop
-bool isUpperLimit(){
-  
-}
-
 void setup() {
   Serial.begin(57600);
   Serial.println("Start");
@@ -50,7 +48,7 @@ void setup() {
   cLED.setColor(RED);//set to red until inital scan finishes
   cLED.on(255);
   servo.rotate(0);//move
-  delay(50);//allow time for servo to move
+  delay(moveDelay);//allow time for servo to move
   servo.rotate(servo.scanHighPos(lightSensor,degreeInterval));//move to highest light source
   lightThreshold = slide.getData();//set lightThreshold
   Serial.print("Light Threshold - ");
@@ -65,8 +63,8 @@ void setup() {
       //------------------------------------  READ ME ---------------------------------------------------------------------------
       //the lightThreshold determines the highest level of light to trigger a 180
       //scan. The button(D12) will allow you to change lightThreshold to the slider(A3) value.
-      //lightThreshold can not be changed while sandbox is scanning so the button is intended
-      //to be used when the lightThreshold has been set too low as the sandbox will not be rotating. A 
+      //lightThreshold can not be changed while sandbox is scanning or when waiting to see if light soruce has returned, 
+      //so the button is intended to be used when the lightThreshold has been set too low as the sandbox will not be rotating. A 
       //lightThreshold set too high will have the sandbox rotating most of the time thus making
       //it difficult to get slider value. While at a lightThreshold set very low the sandbox will
       //not rotate but will still function as intended but will never scan to look for a strong light
@@ -90,7 +88,7 @@ void loop() {
       if(lightCurr < lightThreshold){
         //light has gone below thresHold delay and try again 
         //to check if light source is back
-        delay(3000);
+        delay(waitDelay);
         lightCurr = lightSensor.getData();//new sample
           if(lightCurr < lightThreshold){
             //light source is still gone, turn on red light and scan
@@ -101,7 +99,7 @@ void loop() {
             posCurr = servo.scanHighPos(lightSensor,degreeInterval);
             servo.rotate(servo.checkAdjustLimits(posCurr));
             
-            delay(50);
+            delay(moveDelay);
                 cLED.off();
                 cLED.setColor(GREEN);//green mean its a go
                 cLED.on(255);//on and ready for light changes.
@@ -115,7 +113,7 @@ void loop() {
         servo.rotate(posCurr);//check for upper limit,adjust if needed,move
         Serial.print("upper limit - ");
         Serial.println(posCurr);
-        delay(50);//allow time for servo movement
+        delay(moveDelay);//allow time for servo movement
         //get light source and compare to prev
         if(lightSensor.getData() < lightPrev){
           //light source has decreased indicating that light source is
@@ -125,7 +123,7 @@ void loop() {
           servo.rotate(posCurr);//check for upper limit,adjust if needed,move
           Serial.print("upper limit - ");
           Serial.println(posCurr);
-          delay(50);//allow time for servo movement
+          delay(moveDelay);//allow time for servo movement
         }
       }
 }
