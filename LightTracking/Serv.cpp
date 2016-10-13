@@ -37,5 +37,15 @@ short Serv::scanHighPos(LightSensor lightSensor,short degreeInterval){
     return newPos;
 }
 
+    short Serv::checkAdjustLimits(short posCurr){
+          //check if greater than upper limit
+          if(posCurr > 180){
+            posCurr = 180;//greater than,adjust
+          }else if(posCurr < 0 ){//check if lower than lower limit
+            posCurr = 0;//lower than, adjust
+          }
+          return posCurr;
+    }
+
 
 

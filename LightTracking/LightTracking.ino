@@ -37,6 +37,11 @@ bool isMove(short lightCurr, short lightPrev, short pad){
   return move;
 }
 
+//ensure that servo doesn't grind by going to position beyond stop
+bool isUpperLimit(){
+  
+}
+
 void setup() {
   Serial.begin(57600);
   Serial.println("Start");
@@ -70,6 +75,12 @@ void setup() {
 
 void loop() {
       lightCurr = lightSensor.getData();//sample light data
+      Serial.print("dir: ");
+      Serial.println(dir);
+      Serial.print("posCurr: ");
+      Serial.println(posCurr);
+      Serial.print("Light Level: ");
+      Serial.println(lightCurr);
       //determine if a new lightThreshold sample is to taken
       if(bttn.getData() == 1){
         //button was pressed sample light data
@@ -79,7 +90,7 @@ void loop() {
       if(lightCurr < lightThreshold){
         //light has gone below thresHold delay and try again 
         //to check if light source is back
-        delay(1000);
+        delay(3000);
         lightCurr = lightSensor.getData();//new sample
           if(lightCurr < lightThreshold){
             //light source is still gone, turn on red light and scan
@@ -87,7 +98,9 @@ void loop() {
             cLED.off();
            cLED.setColor(RED);
             cLED.on(255);
-            servo.rotate(servo.scanHighPos(lightSensor,degreeInterval));
+            posCurr = servo.scanHighPos(lightSensor,degreeInterval);
+            servo.rotate(servo.checkAdjustLimits(posCurr));
+            
             delay(50);
                 cLED.off();
                 cLED.setColor(GREEN);//green mean its a go
@@ -98,15 +111,20 @@ void loop() {
       if(isMove(lightCurr,lightPrev,pad)){
         lightPrev = lightCurr;//update value before new data sample
         //get new position according to degreeInterval and rotate
-        posCurr = abs(servo.getPos() * dir + degreeInterval);
-        servo.rotate(posCurr);
+        posCurr = servo.checkAdjustLimits(degreeInterval *2 * dir + servo.getPos());//get position
+        servo.rotate(posCurr);//check for upper limit,adjust if needed,move
+        Serial.print("upper limit - ");
+        Serial.println(posCurr);
         delay(50);//allow time for servo movement
         //get light source and compare to prev
         if(lightSensor.getData() < lightPrev){
           //light source has decreased indicating that light source is
           //most likely in the other direction,switch and move
           dir *= -1;//switch direction
-          servo.rotate(degreeInterval *2 * dir + servo.getPos());//move
+          posCurr = servo.checkAdjustLimits(degreeInterval *2 * dir + servo.getPos());//get position
+          servo.rotate(posCurr);//check for upper limit,adjust if needed,move
+          Serial.print("upper limit - ");
+          Serial.println(posCurr);
           delay(50);//allow time for servo movement
         }
       }
