@@ -1,6 +1,5 @@
 #include "LightSensor.h"
 #include "Slide.h"
-#include "Switch.h"
 #include "Button.h"
 #include "ColorLED.h"
 #include "Serv.h"
@@ -72,18 +71,27 @@ void setup() {
       //----------------------------------------------------------------------------------------------------------------------------
 
 void loop() {
+  // - 
       lightCurr = lightSensor.getData();//sample light data
+ //Check Vars------------------------------------------------------------------------------------------
       Serial.print("dir: ");
       Serial.println(dir);
       Serial.print("posCurr: ");
       Serial.println(posCurr);
       Serial.print("Light Level: ");
       Serial.println(lightCurr);
+      Serial.print("lightThreshold: ");
+      Serial.println(lightThreshold);
+ //----------------------------------------------------------------------------------------------------
+
+ 
       //determine if a new lightThreshold sample is to taken
       if(bttn.getData() == 1){
         //button was pressed sample light data
         lightThreshold = slide.getData();
       }
+
+//Checking, Adujusting light threshold-----------------------------------------------------------------
       //check to see if light has gone below LightThreshold
       if(lightCurr < lightThreshold){
         //light has gone below thresHold delay and try again 
@@ -105,16 +113,18 @@ void loop() {
                 cLED.on(255);//on and ready for light changes.
           }
       }
+//------------------------------------------------------------------------------------------------------
+
+//Chase Light-------------------------------------------------------------------------------------------      
       //Determine if there has been a significant change in the light source to make a move
       if(isMove(lightCurr,lightPrev,pad)){
         //get new position according to degreeInterval and rotate
         posCurr = servo.checkAdjustLimits(degreeInterval *2 * dir + servo.getPos());//get position
         servo.rotate(posCurr);//check for upper limit,adjust if needed,move
-        Serial.print("upper limit - ");
-        Serial.println(posCurr);
         delay(moveDelay);//allow time for servo movement
         //get light source and compare to prev
-        if(lightSensor.getData() < lightPrev){
+        lightPrev = lightCurr;
+        if(lightCurr = lightSensor.getData() < lightPrev){
           //light source has decreased indicating that light source is
           //most likely in the other direction,switch and move
           dir *= -1;//switch direction
@@ -123,4 +133,5 @@ void loop() {
           delay(moveDelay);//allow time for servo movement
         }
       }
+//-------------------------------------------------------------------------------------------------------
 }

@@ -8,11 +8,3 @@ LightSensor::LightSensor(){
   return analogRead(_pin);//read in data
 }
 
-void LightSensor::setPrevData(short currData){
-  _prevData = currData;
-}
-
-short LightSensor::getPrevData(){
-  return _prevData;
-}
-

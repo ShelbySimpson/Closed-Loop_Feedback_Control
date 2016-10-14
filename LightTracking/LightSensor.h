@@ -10,8 +10,6 @@ class LightSensor{
   public:
     LightSensor();//Constructor, sets _pin var
     short getData();//retrieve data from light sensor
-    void setPrevData(short currData);
-    short getPrevData();
   
 };
 
