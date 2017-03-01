@@ -1,4 +1,3 @@
-#Closed-Loop_Feedback_Control
 
 The program works with Arduino's Digital Sandbox, using the light sensor, servo, sliding potentiometer,
 and a push button. Program can easily be ported to another embedded system. With the use of this equipment the Digital Sandbox will "chase" a light source.
